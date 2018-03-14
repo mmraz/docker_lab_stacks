@@ -1,0 +1,1 @@
+docker plugin install rexray/s3fs LINUX_VOLUME_ROOTPATH=/data LINUX_VOLUME_FILEMODE=0777 S3FS_OPTIONS="allow_other,use_path_request_style,nonempty,url=http://127.0.0.1:9000" S3FS_ENDPOINT="http://127.0.0.1:9000" S3FS_ACCESSKEY="XXXXXXXX" S3FS_SECRETKEY="xXxXxXxXxXxXx/xXxXxXxXx/foo" --alias s3fs --grant-all-permissions

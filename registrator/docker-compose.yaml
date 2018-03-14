@@ -1,0 +1,48 @@
+version: "3.4"
+
+networks:
+  consul:
+    external: true
+
+volumes:
+  consul:
+
+services:
+  consul:
+    image: consul:latest
+    volumes:
+      - consul:/consul
+    labels:
+      - 'traefik.backend=consul'
+      - 'traefik.frontend.rule=Host:consul.swarm.mraz.org'
+      - 'traefik.port=8500'
+#    ports:
+#      - target: 8500
+#        published: 8500
+#        mode: host
+    networks:
+      consul:
+        aliases:
+          - consul.cluster
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={ "skip_leave_on_interrupt": true, "acl_down_policy":"allow", "datacenter":"mraz_lab", "data_dir":"/consul/data", "server":true }'
+      - CONSUL_BIND_INTERFACE=eth0
+    command: agent -ui -data-dir /consul/data -server -client 0.0.0.0 -bootstrap-expect=3 -retry-join consul.cluster
+    deploy:
+      endpoint_mode: dnsrr
+      mode: global
+
+  registrator:
+    image: gliderlabs/registrator:latest
+    command: -internal -resync 300 -cleanup consul://consul.cluster:8500
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    networks:
+      - consul
+    deploy:
+      endpoint_mode: dnsrr
+      mode: global
+      restart_policy:
+        delay: 10s
+        max_attempts: 10
+        window: 60s
